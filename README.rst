@@ -1,5 +1,5 @@
-err-hubot exexute hubot script on err !
-=======================================
+err-hubot execute Hubot scripts on err 
+======================================
 
 For more information about err you can find it here: https://github.com/gbin/err
 
