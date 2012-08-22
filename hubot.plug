@@ -1,0 +1,6 @@
+[Core]
+Name = Hubot
+Module = hubot
+
+[Documentation]
+Description = Hubot emulator
