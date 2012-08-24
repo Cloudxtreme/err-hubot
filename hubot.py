@@ -21,16 +21,16 @@ class HubotHttp(object):
         self.query_dict = {k: coffee_dict[k] for k in coffee_dict}
         return self
 
-    def get(self):
+    def get(self, f = None):
         err = None
         response = None
         res = None
         try:
             url = self.url + '?' + urllib.urlencode(self.query_dict) if self.query_dict else self.url
-            response = urllib2.urlopen(url)
+            response = urllib2.urlopen(url).read()
         except urllib2.URLError as error:
             err = error.reason
-        return err, res, response.read()
+        return lambda f : f(err, res, response)
 
 
 class HubotMessage(object):
