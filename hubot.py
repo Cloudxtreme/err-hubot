@@ -8,9 +8,18 @@ from spidermonkey import Runtime, JSError, Object
 from os import path, sep
 from random import choice
 import urllib, urllib2
+import simplejson
 
 def numerotatedJS(js):
     return '\n'.join(('%3i: %s' % (line, text) for line, text in enumerate(js.split('\n'), 1)))
+
+class JSONStub(object):
+
+    def stringify(self, str):
+        return simplejson.dumps(str)
+
+    def parse(self, str):
+        return simplejson.loads(str)
 
 class HubotHttp(object):
     def __init__(self, url):
@@ -132,7 +141,11 @@ class Hubot(BotPlugin):
     def hear(self, pattern, function):
         """The hubot callback to register a listening function
         """
-        regexp, modifiers = repr(pattern).split('/')[1:]
+        pattern = repr(pattern)
+        first_slash = pattern.index('/')
+        last_slash = pattern.rindex('/')
+        regexp = pattern[first_slash+1:last_slash]
+        modifiers = pattern[last_slash:]
         logging.debug("Registering a hubot snippet %s -> %s" % (regexp, repr(function)))
         self.hear_matchers[regexp] = function
 
@@ -140,7 +153,11 @@ class Hubot(BotPlugin):
         """The hubot callback to register a listening function to himself only
         TODO dissociate from hear
         """
-        regexp, modifiers = repr(pattern).split('/')[1:]
+        pattern = repr(pattern)
+        first_slash = pattern.index('/')
+        last_slash = pattern.rindex('/')
+        regexp = pattern[first_slash+1:last_slash]
+        modifiers = pattern[last_slash:]
         logging.debug("Registering a hubot snippet %s -> %s" % (regexp, repr(function)))
         self.hear_matchers[regexp] = function
 
@@ -152,6 +169,7 @@ class Hubot(BotPlugin):
         cx = self.rt.new_context()
         cx.add_global("module", module)
         cx.add_global("process", self.process)
+        cx.add_global("JSON", JSONStub())
         logging.debug("Compiling coffeescript...")
         js = coffeescript.compile(coffee, bare=True)
         nummed_js = numerotatedJS(js)
