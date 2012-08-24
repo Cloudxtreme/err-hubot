@@ -21,7 +21,7 @@ class HubotHttp(object):
         self.query_dict = {k: coffee_dict[k] for k in coffee_dict}
         return self
 
-    def get(self, f = None):
+    def get(self):
         err = None
         response = None
         res = None
