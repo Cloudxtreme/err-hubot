@@ -173,7 +173,7 @@ class Hubot(BotPlugin):
         copy = self['scripts']
         copy[script_name] = script
         self['scripts'] = copy
-        self.add_snippet(script)
+        self.add_snippet(script_name, script)
         return 'Script %s added.' % script_name
 
     @botcmd
