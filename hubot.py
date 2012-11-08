@@ -8,7 +8,14 @@ from spidermonkey import Runtime, JSError, Object
 from os import path, sep
 from random import choice
 import urllib, urllib2
-import simplejson
+import json
+
+def load_nodejsdep(name):
+    package = json.load(urllib.urlopen("http://registry.npmjs.org/"+name))
+    last_version = max(package['versions'].keys()) # hackish
+    file = package['versions'][last_version]['dist']['tarball']
+
+
 
 def numerotatedJS(js):
     return '\n'.join(('%3i: %s' % (line, text) for line, text in enumerate(js.split('\n'), 1)))
@@ -16,10 +23,10 @@ def numerotatedJS(js):
 class JSONStub(object):
 
     def stringify(self, str):
-        return simplejson.dumps(str)
+        return json.dumps(str)
 
     def parse(self, str):
-        return simplejson.loads(str)
+        return json.loads(str)
 
 class HubotHttp(object):
     def __init__(self, url):
@@ -63,7 +70,7 @@ class HubotMessage(object):
 
     def reply(self, text):
         logging.debug("Hubot reply: " + text)
-        self.callback.send(self.mess.getFrom(), text, mess)
+        self.callback.send(self.mess.getFrom(), text, self.mess)
 
     def http(self, url):
         return HubotHttp(url)
@@ -161,14 +168,17 @@ class Hubot(BotPlugin):
         logging.debug("Registering a hubot snippet %s -> %s" % (regexp, repr(function)))
         self.hear_matchers[regexp] = function
 
-
     def add_snippet(self, name, coffee):
         #logging.debug("Trying to insert this gloubiboulga [%s]" % coffee)
         logging.debug("Creating a face Hubot context...")
+        def require(module_name):
+            logging.debug("Trying to load " + module_name)
+
         module = HubotModule()
         cx = self.rt.new_context()
         cx.add_global("module", module)
         cx.add_global("process", self.process)
+        cx.add_global("require", require)
         cx.add_global("JSON", JSONStub())
         logging.debug("Compiling coffeescript...")
         js = coffeescript.compile(coffee, bare=True)
